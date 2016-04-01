@@ -1,0 +1,9 @@
+;;;;;
+title: Up & running again
+tags: blog, en
+date: 2009-04-15
+format: html (for raw html) or md (for markdown)
+;;;;;
+It’s been a long time since my site went down. My hosting provider lost not only my site but also my database, with all the blog data with it. I even had a backup contracted, which allowed me to notice they weren’t been done properly...
+
+So, my data is lost, but my site is up again with a new hosting provider. A new time for my blog. This time i expect to be a bit different. I expect to write about more broad topics and probably in different languages. My blog engine now supports tags, so you’ll be able to select by posts by language if you wish (supposing there’s someone reading! :-D)
