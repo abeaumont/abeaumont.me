@@ -1,0 +1,63 @@
+;;;;;
+title: Counting primes in Factor
+tags: en, factor
+date: 2011-01-12
+format: md
+;;;;;
+
+Last week [Programming Praxis](https://programmingpraxis.com/2011/01/07/counting-primes/) proposed to write two functions:
+
+* `prime-counting(n)` function, that returns the number of primes to n
+* `nth-prime(n)` function, that returns the nth prime number
+
+A day before Samuel Tardieu wrote an article about [Positional factoring](https://www.rfc1149.net/blog/2011/01/06/positional-factoring/) which included information about the [math.primes](http://docs.factorcode.org/content/vocab-math.primes.html) vocabulary in [Factor](http://factorcode.org/). He also included a solution on [J](http://www.jsoftware.com/) which is also used to provide a solution to the Programming Praxis problem (see the [first comment](https://programmingpraxis.com/2011/01/07/counting-primes/#comment-2279)). So I decided to write an implementation in Factor, which is a very easy task.
+
+## Counting primes
+
+`primes-upto` takes a number and returns a sequence of prime numbers up to that one, so we just need to count the sequence length to get intended result:
+
+```factor
+USING: sequences math.primes ;
+: prime-counting ( x -- y )
+    primes-upto length ;
+```
+
+Testing it, works as expected:
+
+```factor
+( scratchpad ) 100 prime-counting .
+25
+( scratchpad ) { 100 101 102 103 104 } [ prime-counting ] map .
+{ 25 26 26 27 27 }
+```
+
+## Nth prime
+
+This problem is a bit more complex, yet Factor provides a great solution in [math.primes.lists](http://docs.factorcode.org/content/vocab-math.primes.lists.html) making use of [Lazy](https://en.wikipedia.org/wiki/Lazy_evaluation) lists: lprimes provides an infinite stream of prime numbers, so we just need to take as many prime numbers as needed and return the last:
+
+```
+USING: sequences math.primes lists lists.lazy math.primes.lists ;
+: nth-prime ( x -- y )
+    lprimes ltake list>array last ;
+```
+
+Testing it, works as expected:
+
+```factor
+( scratchpad ) 25 nth-prime .
+97
+( scratchpad ) { 24 25 26 27 28 } [ nth-prime ] map .
+{ 89 97 101 103 107 }
+```
+
+And that’s pretty much about it. Here you have the whole counting-primes vocabulary:
+
+```
+USING: sequences math.primes lists lists.lazy math.primes.lists ;
+IN: counting-primes
+: prime-counting ( x -- y )
+    primes-upto length ;
+
+: nth-prime ( x -- y )
+    lprimes ltake list>array last ;
+```
