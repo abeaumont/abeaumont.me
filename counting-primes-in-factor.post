@@ -1,11 +1,12 @@
-;;;;;
+---
 title: Counting primes in Factor
 tags: en, factor
 date: 2011-01-12
+excerpt: Solution to the Counting Primes problem from Programming Praxis, in Factor.
 format: md
-;;;;;
+---
 
-Last week [Programming Praxis](https://programmingpraxis.com/2011/01/07/counting-primes/) proposed to write two functions:
+Last week [Programming Praxis](https://programmingpraxis.com/2011/01/07/counting-primes/) proposed to write two functions<!--more-->:
 
 * `prime-counting(n)` function, that returns the number of primes to n
 * `nth-prime(n)` function, that returns the nth prime number
@@ -35,7 +36,7 @@ Testing it, works as expected:
 
 This problem is a bit more complex, yet Factor provides a great solution in [math.primes.lists](http://docs.factorcode.org/content/vocab-math.primes.lists.html) making use of [Lazy](https://en.wikipedia.org/wiki/Lazy_evaluation) lists: lprimes provides an infinite stream of prime numbers, so we just need to take as many prime numbers as needed and return the last:
 
-```
+```factor
 USING: sequences math.primes lists lists.lazy math.primes.lists ;
 : nth-prime ( x -- y )
     lprimes ltake list>array last ;
@@ -52,7 +53,7 @@ Testing it, works as expected:
 
 And that’s pretty much about it. Here you have the whole counting-primes vocabulary:
 
-```
+```factor
 USING: sequences math.primes lists lists.lazy math.primes.lists ;
 IN: counting-primes
 : prime-counting ( x -- y )
