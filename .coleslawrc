@@ -1,0 +1,22 @@
+(:author "Alfredo Beaumont"
+ :deploy-dir "/home/abeaumont/blog"
+ :domain "https://abeaumont.me"
+ :feeds ("en")
+ :plugins ((analytics :tracking-code "UA-20428334-1")
+ 	   (static-pages)
+           (mathjax)
+           (sitemap))
+ :routing ((:post           "posts/~a")
+           (:tag-index      "tag/~a")
+           (:month-index    "date/~a")
+           (:numeric-index  "~d")
+           (:feed           "~a.xml")
+           (:tag-feed       "tag/~a.xml"))
+ :sitenav ((:url "http://twitter.com/abeaumont" :name "Twitter")
+           (:url "http://github.com/abeaumont" :name "Github")
+           (:url "https://www.linkedin.com/in/alfredobeaumont/" :name "LinkedIn")
+           (:url "https://www.openhub.net/accounts/967" :name "OpenHub"))
+ :staging-dir "/tmp/coleslaw/"
+ :title "Alfredo Beaumont's blog"
+ :separator "---"
+ :theme "abeaumont-me")
