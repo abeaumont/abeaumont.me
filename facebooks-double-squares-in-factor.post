@@ -1,0 +1,142 @@
+---
+title: Facebook's Double Squares in Factor
+tags: en, facebook, factor, puzzles, math
+date: 2011-01-20
+format: md
+---
+
+Facebook has recently launched a puzzle programming contest (aka [Facebook Hacker Cup](http://www.facebook.com/hackercup)). Since I always liked puzzles (I had already solved some of [these puzzles](http://www.facebook.com/careers/puzzles.php) -I may talk about them in another post-), I decided to give it a try. With around 100.000 participants, I'm neither clever nor fast enough to win and, unlike in the puzzles, there's no limitation on programming languages to use, so I thought it would be a good opportunity to practice with my favourite languages instead of trying with those I'm more fluent with.<!--more-->
+The contest is divided in different rounds, the first one consisted in 3 puzzles. The first one is entitled Double Squares and says as follows:
+
+    A double-square number is an integer X which can be expressed as the sum of two perfect squares. For example, 10 is a double-square because 10 = 3^2 + 1^2. Your task in this problem is, given X, determine the number of ways in which it can be written as the sum of two squares. For example, 10 can only be written as 3^2 + 1^2 (we don't count 1^2 + 3^2 as being different). On the other hand, 25 can be written as 5^2 + 0^2 or as 4^2 + 3^2.
+
+    Input
+    You should first read an integer N, the number of test cases. The next N lines will contain N values of X.
+
+    Constraints
+    0 ≤ X ≤ 2147483647
+    1 ≤ N ≤ 100
+
+    Output
+    For each value of X, you should output the number of ways to write X as the sum of two squares.
+
+    Example input
+
+    5
+    10
+    25
+    3
+    0
+    1
+
+    Example output
+
+    1
+    2
+    0
+    1
+    1
+
+So basically this means that we need to check for each number n how many distinct x, y combinations are to satisfy: ¡y^2 + z^2 = x¡
+
+I decided to implement it in Factor. Since the program is going to be a script that parses a file whose name is provided as a command line argument, let's begin with the boring stuff:
+
+```factor
+: (double-squares) ( path -- )
+    utf8 file-lines 1 tail [
+        string>number count
+    ] each ;
+
+: double-squares ( -- )
+    command-line get first (double-squares) ;
+```
+
+`(double-squares)` parses the input file, removes the first line (which provides the number of test cases) and counts the amount of double squares (with the yet to be defined word count).
+
+`double-squares` takes care of command line argument parsing and calls `(double-squares)`. This separation helps us during the development process, since we can call `(double-squares)` from the listener and use `double-squares` as a mere wrapper for the script.
+
+So, now that we have the boring stuff done, let's solve the core of the problem and implement count. We'll use a dynamic variable counter to make the code more readable:
+
+```factor
+SYMBOL: counter
+: count ( x -- )
+    0 counter set
+    [ 2 / floor >integer 1 + ] keep [
+        check-double
+    ] curry each-integer
+    counter get . ;
+```
+
+What happens here? The counter is initialized, and we loop from 0 to ¡x/2¡ to set the value of ¡y^2¡ in ¡y^2 + z^2 = x¡. So if we know both x and y, we just need to check whether both ¡y = sqrt(y^2)¡ and ¡z = sqrt(x – y^2)¡ are natural numbers. That's exactly the task of `check-double`:
+
+```factor
+: root? ( x -- ? )
+    sqrt dup >fixnum number= 
+
+: check-double ( x y z -- w )
+    [ drop root? ] [ swap - root? ] 2bi and [
+        counter inc
+    ] when
+```
+
+As you can see, check-double also increments the counter in case a double square is found. The loop iterates in range [0,x/2] and not in range [0,x] since ¡3^2 + 1^2¡ and ¡1^2 + 3^2¡ don't count as different double squares.
+
+So, we're done. Let's try our code:
+
+```text
+$ ./double-squares.factor input.txt
+1
+2
+0
+1
+1
+```
+
+Everything seems ok, right? Well, that's what I thought at least. So I downloaded input file, ran the script again and waited... and waited... and waited... until I decided it was enough and took a look. The input files had some big numbers and the script was taking forever. The reason? I was looping for each integer instead of each valid root, which increases the number of iterations exponentially... how lame. So let's fix the affected words:
+
+```factor
+: check-double ( x y z -- w )
+    swap sq - root? [ counter inc ] when ; inline
+
+: count ( x -- )
+    0 counter set
+    [ 2 / sqrt floor >integer 1 + ] keep [
+        check-double
+    ] curry each-integer
+    counter get . ;
+```
+
+Now it works fine... unfortunately (for me) facebook guys decided that a 6' deadline from input file downloading to output submission was a good idea, so i failed this one due to timeout.
+
+Here you have the whole program:
+
+```factor
+#! /usr/bin/env factor
+USING: kernel math math.functions command-line namespaces sequences
+io.encodings.utf8 io io.files prettyprint math.parser ;
+IN: double-squares
+SYMBOL: counter
+
+: root? ( x -- ? )
+    sqrt dup >fixnum number= ; inline
+
+: check-double ( x y z -- w )
+    swap sq - root? [ counter inc ] when ; inline
+
+: count ( x -- )
+    0 counter set
+    [ 2 / sqrt floor 1 + ] keep [
+        check-double
+    ] curry each-integer
+    counter get . ;
+
+: (double-squares) ( path -- )
+    utf8 file-lines 1 tail [
+        string>number count
+    ] each ;
+
+: double-squares ( -- )
+    command-line get first (double-squares) ;
+
+double-squares
+```

@@ -1,0 +1,159 @@
+---
+title: ToAndFro in Factor and Common Lisp
+tags: en, common lisp, factor, spoj, puzzles
+date: 2011-09-30
+format: md
+---
+
+Taking a look at [SPOJ](http://www.spoj.pl/) online judge, I reached [ToAndFro](http://www.spoj.pl/problems/TOANDFRO/) problem and thought how easy it was to solve it in Factor.<!--more--> The problem states the following:
+
+    Mo and Larry have devised a way of encrypting messages. They first decide secretly on the number of columns and write the message (letters only) down the columns, padding with extra random letters so as to make a rectangular array of letters. For example, if the message is “There’s no place like home on a snowy night” and there are five columns, Mo would write down
+
+    t o i o y
+    h p k n n
+    e l e a i
+    r a h s g
+    e c o n h
+    s e m o t
+    n l e w x
+
+    Note that Mo includes only letters and writes them all in lower case. In this example, Mo used the character ‘x’ to pad the message out to make a rectangle, although he could have used any letter. Mo then sends the message to Larry by writing the letters in each row, alternating left-to-right and right-to-left. So, the above would be encrypted as
+
+    toioynnkpheleaigshareconhtomesnlewx
+
+    Your job is to recover for Larry the original message (along with any extra padding letters) from the encrypted one.
+
+Summarizing, we basically need to convert the string back to the character matrix, reverse every odd row, transpose the matrix and build the string again. This is pretty easy to do in factor:
+
+```factor
+: toandfro ( sequence n -- string )
+    group [ odd? [ reverse ] when ] map-index
+    flip concat >string ;
+```
+
+```factor
+( scratchpad ) "toioynnkpheleaigshareconhtomesnlewx" 5 toandfro
+
+--- Data stack:
+"theresnoplacelikehomeonasnowynightx"
+```
+
+Unfortunately, even if SPOJ provides a wide programming language support, it doesn’t support Factor. Factor has usually been compared to lisp, so I decided to translate the above code to Common Lisp and see how well it fits. This is the equivalent Common Lisp code:
+
+```common-lisp
+(>string (concat (flip (map-index #'(lambda (s n)
+                                      (if (oddp n) (reverse s) s))
+                                  (group sequence n))))))
+=> "theresnoplacelikehomeonasnowynightx"
+```
+
+For this to work, we should define some functions used in this sentence, since Common Lisp doesn’t include them in its standard library:
+
+group:
+
+```common-lisp
+(defun group (sequence n)
+  (loop for i from 0 to (1- (/ (length sequence) n))
+    collect (subseq sequence (* i n) (+ (* i n) n))))
+```
+
+```common-lisp
+(group "toioynnkpheleaigshareconhtomesnlewx" 5)
+=> ("toioy" "nnkph" "eleai" "gshar" "econh" "tomes" "nlewx")
+```
+
+map-index:
+
+```common-lisp
+(defun map-index (function list)
+  (labels ((m-i (fn l i)
+              (unless (null l)
+                (cons (apply fn (car l) (list i)) 
+                      (m-i fn (cdr l) (1+ i))))))
+    (m-i function list 0)))
+```
+
+```common-lisp
+(map-index #'(lambda (s n)
+               (if (oddp n) (reverse s) s)) 
+           '("toioy" "nnkph" "eleai" "gshar" "econh" "tomes" "nlewx"))
+=> ("toioy" "hpknn" "eleai" "rahsg" "econh" "semot" "nlewx")
+```
+
+flip:
+
+```common-lisp
+(defun flip (list)
+  (when (> (length list) 0)
+    (loop for i from 0 to (1- (length (car list)))
+       collect (mapcar #'(lambda (seq) (elt seq i)) list))))
+```
+
+```common-lisp
+(flip '("toioy" "hpknn" "eleai" "rahsg" "econh" "semot" "nlewx"))
+=> ((#\t #\h #\e #\r #\e #\s #\n) (#\o #\p #\l #\a #\c #\e #\l)
+ (#\i #\k #\e #\h #\o #\m #\e) (#\o #\n #\a #\s #\n #\o #\w)
+ (#\y #\n #\i #\g #\h #\t #\x))
+```
+
+concat:
+
+```common-lisp
+(defun concat (sequence)
+  (reduce #'append sequence))
+```
+
+```common-lisp
+(concat '((#\t #\h #\e #\r #\e #\s #\n) (#\o #\p #\l #\a #\c #\e #\l)
+ (#\i #\k #\e #\h #\o #\m #\e) (#\o #\n #\a #\s #\n #\o #\w)
+ (#\y #\n #\i #\g #\h #\t #\x)))
+=> (#\t #\h #\e #\r #\e #\s #\n #\o #\p #\l #\a #\c #\e #\l #\i #\k #\e #\h #\o
+ #\m #\e #\o #\n #\a #\s #\n #\o #\w #\y #\n #\i #\g #\h #\t #\x)
+```
+>string:
+
+```common-lisp
+(defun >string (sequence)
+  (concatenate 'string sequence))
+```
+
+```common-lisp
+(>string '(#\t #\h #\e #\r #\e #\s #\n #\o #\p #\l #\a #\c #\e #\l #\i #\k #\e
+  #\h #\o #\m #\e #\o #\n #\a #\s #\n #\o #\w #\y #\n #\i #\g #\h #\t #\x))
+=> "theresnoplacelikehomeonasnowynightx"
+```
+
+Joining it all we have:
+
+```common-lisp
+(defun group (sequence n)
+  (loop for i from 0 to (1- (/ (length sequence) n))
+       collect (subseq sequence (* i n) (+ (* i n) n))))
+ 
+(defun map-index (function list)
+  (labels ((m-i (fn l i)
+              (unless (null l)
+                (cons (apply fn (car l) (list i)) 
+                      (m-i fn (cdr l) (1+ i))))))
+    (m-i function list 0)))
+ 
+(defun flip (list)
+  (when (> (length list) 0)
+    (loop for i from 0 to (1- (length (car list)))
+       collect (mapcar #'(lambda (seq) (elt seq i)) list))))
+ 
+(defun concat (sequence)
+  (reduce #'append sequence))
+ 
+(defun >string (sequence)
+  (concatenate 'string sequence))
+ 
+(defun toandfro (sequence n)
+  (>string (concat (flip (map-index #'(lambda (s n)
+                                        (if (oddp n) (reverse s) s))
+                                    (group sequence n))))))
+```
+
+Some of the functions above require a list as a parameter instead of a sequence, yet it could be easily modified to support sequences in a more generic form.
+
+I wonder how an independent Common Lisp implementation would compare to the above. 
