@@ -1,11 +1,17 @@
 {namespace coleslaw.theme.abeaumont-me}
 
 {template index}
-<h1 class="page-header">{$index.title}</h1>
 {foreach $obj in $index.content}
-  <div class="row-fluid">
+  <div class="row-fluid page-header">
     <h1><a href="{$config.domain}/{$obj.url}">{$obj.title}</a></h1>
-    <p class="date-posted">posted on {$obj.date}</p>
+    <p class="date-posted">
+       posted on {$obj.date}{nil}
+       {if $obj.tags}
+         {foreach $tag in $obj.tags}
+           ,{sp}<a href="{$config.domain}/{$tag.url}">{$tag.name}</a>{nil}
+         {/foreach}
+       {/if}
+    </p>
     {$obj.excerpt |noAutoescape}
   </div>
 {/foreach}
