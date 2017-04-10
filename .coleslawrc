@@ -3,10 +3,9 @@
  :domain "https://abeaumont.me"
  :feeds ("en")
  :plugins ((analytics :tracking-code "UA-20428334-1")
-           (mathjax :location "https://cdn.mathjax.org/mathjax/latest/MathJax.js"
-                    :preset "AM_HTMLorMML"
-           (pygments)
+           (mathjax :preset "AM_HTMLorMML"
                     :config "asciimath2jax: {delimiters: [['¡','¡']]}")
+           (pygments)
            (sitemap))
  :routing ((:post           "posts/~a")
            (:tag-index      "tag/~a")
