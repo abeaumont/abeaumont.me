@@ -4,6 +4,7 @@
  :feeds ("en")
  :plugins ((analytics :tracking-code "UA-20428334-1")
            (mathjax :preset "AM_HTMLorMML"
+                    :location "https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.1/MathJax.js"
                     :config "asciimath2jax: {delimiters: [['¡','¡']]}")
            (pygments)
            (sitemap))
